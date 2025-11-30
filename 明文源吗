@@ -1179,11 +1179,6 @@
                     }
                     if (url.pathname.includes('/sub')) {
                         const pathParts = url.pathname.split('/');
-                        // 允许通过URL参数自定义UUID和Host
-                        if (url.searchParams.has('uuid') && url.searchParams.has('host')) {
-                            return await handleSubscriptionRequest(request, url.searchParams.get('uuid'), url);
-                        }
-
                         if (pathParts.length === 2 && pathParts[1] === 'sub') {
                             const user = pathParts[0].substring(1);
                             if (isValidFormat(user)) {
@@ -1220,13 +1215,8 @@
     async function handleSubscriptionRequest(request, user, url = null) {
         if (!url) url = new URL(request.url);
         
-        // 优先使用URL参数中的值
-        if (url.searchParams.has('uuid')) {
-            user = url.searchParams.get('uuid');
-        }
-        
         const finalLinks = [];
-        const workerDomain = url.searchParams.get('host') || url.hostname;
+        const workerDomain = url.hostname;
         const target = url.searchParams.get('target') || 'base64';
 
         async function addNodesFromList(list) {
@@ -1877,14 +1867,9 @@
     }
 
     async function handleSubscriptionPage(request, user = null) {
-        const url = new URL(request.url);
-        // 如果 URL 包含 host 参数，优先使用 URL 参数中的 UUID
-        if (url.searchParams.has('host') && url.searchParams.has('uuid')) {
-             user = url.searchParams.get('uuid');
-        } else if (!user) {
-             user = at;
-        }
+        if (!user) user = at;
         
+        const url = new URL(request.url);
         // 优先检查Cookie中的语言设置
         const cookieHeader = request.headers.get('Cookie') || '';
         let langFromCookie = null;
@@ -1993,7 +1978,7 @@
                         KR: '🇰🇷 韩国', DE: '🇩🇪 德国', SE: '🇸🇪 瑞典', NL: '🇳🇱 荷兰',
                         FI: '🇫🇮 芬兰', GB: '🇬🇧 英国'
                     },
-                    terminal: '终端 v2.7',
+                    terminal: '终端 v2.6',
                     githubProject: 'GitHub 项目',
                     autoDetectClient: '自动识别',
                 selectionLogicText: '同地区 → 邻近地区 → 其他地区',
@@ -2100,7 +2085,7 @@
                         KR: '🇰🇷 کره جنوبی', DE: '🇩🇪 آلمان', SE: '🇸🇪 سوئد', NL: '🇳🇱 هلند',
                         FI: '🇫🇮 فنلاند', GB: '🇬🇧 بریتانیا'
                     },
-                    terminal: 'ترمینال v2.7',
+                    terminal: 'ترمینال v2.5.0',
                     githubProject: 'پروژه GitHub',
                     autoDetectClient: 'تشخیص خودکار',
                 selectionLogicText: 'هم‌منطقه → منطقه مجاور → سایر مناطق',
@@ -2393,27 +2378,6 @@
                         <div id="selectionLogic" style="margin: 8px 0; color: #00aa00; font-family: 'Courier New', monospace; font-size: 0.9rem; text-shadow: 0 0 3px #00aa00;">${t.selectionLogic}${t.selectionLogicText}</div>
                 </div>
             </div>
-            
-            <div class="card">
-                <h2 class="card-title">${t.customSubscription}</h2>
-                <div style="margin-bottom: 15px;">
-                    <p style="color: #00aa00; margin-bottom: 10px; font-size: 0.9rem;">${t.customSubscriptionHint}</p>
-                    <label style="color: #00ff00; display: block; margin-bottom: 8px; font-weight: bold; text-shadow: 0 0 3px #00ff00;">${t.customUUID}</label>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="text" id="custom-uuid" style="flex: 1; padding: 12px; background: rgba(0, 0, 0, 0.8); border: 2px solid #00ff00; color: #00ff00; font-family: 'Courier New', monospace; font-size: 14px;" placeholder="UUID">
-                        <button onclick="generateUUID()" style="background: rgba(0, 255, 0, 0.15); border: 2px solid #00ff00; padding: 12px 20px; color: #00ff00; cursor: pointer; font-weight: bold;">${t.randomUUID}</button>
-                    </div>
-                    <small style="color: #00aa00; font-size: 0.85rem;">${t.customUUIDHint}</small>
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <label style="color: #00ff00; display: block; margin-bottom: 8px; font-weight: bold; text-shadow: 0 0 3px #00ff00;">${t.customHost}</label>
-                    <input type="text" id="custom-host" style="width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.8); border: 2px solid #00ff00; color: #00ff00; font-family: 'Courier New', monospace; font-size: 14px;" placeholder="${t.customHostPlaceholder}">
-                    <small style="color: #00aa00; font-size: 0.85rem;">${t.customHostHint}</small>
-                </div>
-                <button onclick="generateSubLink()" style="width: 100%; background: rgba(0, 255, 0, 0.15); border: 2px solid #00ff00; padding: 12px; color: #00ff00; font-family: 'Courier New', monospace; font-weight: bold; cursor: pointer; margin-bottom: 10px; text-shadow: 0 0 8px #00ff00; transition: all 0.4s ease;">${t.generateLink}</button>
-                <p style="color: #00aa00; font-size: 0.85rem; text-align: center;">${t.accessNewPanel}</p>
-            </div>
-        </div>
             <div class="card" id="configCard" style="display: none;">
                     <h2 class="card-title">${t.configManagement}</h2>
                 <div id="kvStatus" style="margin-bottom: 20px; padding: 10px; background: rgba(0, 20, 0, 0.8); border: 1px solid #00ff00; color: #00ff00;">
@@ -3189,18 +3153,7 @@
                                 kvCheckFailed: '⚠️ KV存储检测失败',
                                 kvCheckFailedFormat: 'KV存储检测失败: 响应格式错误',
                                 kvCheckFailedStatus: 'KV存储检测失败 - 状态码: ',
-                                kvCheckFailedError: 'KV存储检测失败 - 错误: ',
-                                customSubscription: '自选优选订阅',
-                                customUUID: '自定义UUID:',
-                                randomUUID: '随机生成',
-                                customHost: '优选域名 (Host):',
-                                customHostPlaceholder: '例如: cdn.example.com',
-                                generateLink: '访问新订阅面板',
-                                fillRequired: '请填写 UUID 和 域名',
-                                customSubscriptionHint: '生成临时订阅链接，用于访问包含特定优选域名的订阅面板。',
-                                customUUIDHint: 'UUID：您的用户ID，用于验证身份。',
-                                customHostHint: '优选域名 (Host)：您的 Cloudflare 优选域名/IP。',
-                                accessNewPanel: '点击访问后，将跳转到带有新参数的面板，您可以直接在其中使用一键导入功能。'
+                                kvCheckFailedError: 'KV存储检测失败 - 错误: '
                             },
                             fa: {
                                 kvDisabled: '⚠️ ذخیره‌سازی KV فعال نیست یا پیکربندی نشده است',
@@ -3210,18 +3163,7 @@
                                 kvCheckFailed: '⚠️ بررسی ذخیره‌سازی KV ناموفق',
                                 kvCheckFailedFormat: 'بررسی ذخیره‌سازی KV ناموفق: خطای فرمت پاسخ',
                                 kvCheckFailedStatus: 'بررسی ذخیره‌سازی KV ناموفق - کد وضعیت: ',
-                                kvCheckFailedError: 'بررسی ذخیره‌سازی KV ناموفق - خطا: ',
-                                customSubscription: 'اشتراک سفارشی',
-                                customUUID: 'UUID سفارشی:',
-                                randomUUID: 'تولید تصادفی',
-                                customHost: 'دامنه ترجیحی (Host):',
-                                customHostPlaceholder: 'مثال: cdn.example.com',
-                                generateLink: 'دسترسی به پنل اشتراک جدید',
-                                fillRequired: 'لطفا UUID و دامنه را پر کنید',
-                                customSubscriptionHint: 'ایجاد لینک اشتراک موقت برای دسترسی به پنل اشتراک با دامنه ترجیحی خاص.',
-                                customUUIDHint: 'UUID: شناسه کاربری شما برای احراز هویت.',
-                                customHostHint: 'دامنه ترجیحی (Host): دامنه/IP ترجیحی Cloudflare شما.',
-                                accessNewPanel: 'پس از کلیک برای دسترسی، به پنل با پارامترهای جدید هدایت خواهید شد، جایی که می‌توانید مستقیماً از ویژگی وارد کردن با یک کلیک استفاده کنید.'
+                                kvCheckFailedError: 'بررسی ذخیره‌سازی KV ناموفق - خطا: '
                             }
                         };
                         
@@ -3540,35 +3482,6 @@
                     }
                 }
             }
-
-            function generateUUID() {
-                var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                    var r = Math.random() * 16 | 0;
-                    var v = c == 'x' ? r : (r & 0x3 | 0x8);
-                    return v.toString(16);
-                });
-                document.getElementById('custom-uuid').value = uuid;
-            }
-            
-            function generateSubLink() {
-                var uuid = document.getElementById('custom-uuid').value.trim();
-                var host = document.getElementById('custom-host').value.trim();
-                
-                if (!uuid || !host) {
-                    alert(t.fillRequired);
-                    return;
-                }
-                
-                var currentPath = window.location.pathname;
-                var currentUrl = window.location.origin;
-                var newPanelUrl = new URL(currentUrl + currentPath);
-                newPanelUrl.searchParams.set('uuid', uuid);
-                newPanelUrl.searchParams.set('host', host);
-                
-                // 跳转到带有新参数的面板页面
-                window.location.href = newPanelUrl.toString();
-            }
-            
             
             document.addEventListener('DOMContentLoaded', function() {
                 createMatrixRain();
