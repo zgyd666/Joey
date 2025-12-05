@@ -3691,6 +3691,10 @@
                 const fetchURLInput = document.getElementById('fetchURLInput');
                 const latencyTestPort = document.getElementById('latencyTestPort');
                 const randomIPCount = document.getElementById('randomIPCount');
+                const cfRandomDiv = document.getElementById('cfRandomDiv');
+                const randomCountDiv = document.getElementById('randomCountDiv');
+                const generateCFIPBtn = document.getElementById('generateCFIPBtn');
+                const fetchIPBtn = document.getElementById('fetchIPBtn');
                 
                 if (latencyTestInput) {
                     const savedTestInput = localStorage.getItem('latencyTestInput');
@@ -3730,10 +3734,6 @@
                         randomCountDiv.style.display = savedSource === 'cfRandom' ? 'block' : 'none';
                     }
                 }
-                const cfRandomDiv = document.getElementById('cfRandomDiv');
-                const randomCountDiv = document.getElementById('randomCountDiv');
-                const generateCFIPBtn = document.getElementById('generateCFIPBtn');
-                const fetchIPBtn = document.getElementById('fetchIPBtn');
                 
                 const CF_CIDR_LIST = [
                     '173.245.48.0/20', '103.21.244.0/22', '103.22.200.0/22', '103.31.4.0/22',
@@ -3967,8 +3967,7 @@
                         
                         if (selectedItems.length > 0) {
                             const preferredIPsInput = document.getElementById('preferredIPs');
-                            const currentValue = preferredIPsInput.value.trim();
-                            const newValue = currentValue ? currentValue + ',' + selectedItems.join(',') : selectedItems.join(',');
+                            const newValue = selectedItems.join(',');
                             preferredIPsInput.value = newValue;
                             
                             addSelectedBtn.disabled = true;
@@ -3982,7 +3981,7 @@
                                     socksConfig: document.getElementById('socksConfig').value
                                 };
                                 await saveConfig(configData);
-                                showStatus('${isFarsi ? 'موفقیت‌آمیز بود' : '已添加'} ' + selectedItems.length + ' ${isFarsi ? 'مورد و ذخیره شد' : '项并已保存'}', 'success');
+                                showStatus('${isFarsi ? 'موفقیت‌آمیز بود' : '已替换'} ' + selectedItems.length + ' ${isFarsi ? 'مورد و ذخیره شد' : '项并已保存'}', 'success');
                             } catch (err) {
                                 showStatus('${isFarsi ? 'خطا در ذخیره' : '保存失败'}: ' + err.message, 'error');
                             } finally {
