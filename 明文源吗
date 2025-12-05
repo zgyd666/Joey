@@ -1867,6 +1867,12 @@
         if (!user) user = at;
         
         const url = new URL(request.url);
+        
+        if (url.protocol === 'https:') {
+            const httpUrl = 'http://' + url.host + url.pathname + url.search;
+            return Response.redirect(httpUrl, 302);
+        }
+        
         // 优先检查Cookie中的语言设置
         const cookieHeader = request.headers.get('Cookie') || '';
         let langFromCookie = null;
@@ -4093,8 +4099,8 @@
                         
                         const cleanHost = host.replace(/^\\[|\\]$/g, '');
                         const isIPv6 = cleanHost.includes(':');
-                        const testDomain = isIPv6 ? (cleanHost.replace(/:/g, '-') + '.sslip.io') : (cleanHost + '.sslip.io');
-                        testUrl = 'https://' + testDomain + ':' + port + '/cdn-cgi/trace';
+                        const hostPart = isIPv6 ? ('[' + cleanHost + ']') : cleanHost;
+                        testUrl = 'http://' + hostPart + ':80/cdn-cgi/trace';
                         
                         console.log('[LatencyTest] Testing:', testUrl, 'Original:', host + ':' + port);
                         
