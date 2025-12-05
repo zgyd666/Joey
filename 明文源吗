@@ -2528,6 +2528,10 @@
                                     <label style="display: block; margin-bottom: 5px; color: #00ff00; font-size: 0.9rem;">${t.randomCount}</label>
                                     <input type="number" id="randomIPCount" value="20" min="1" max="100" style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.8); border: 1px solid #00ff00; color: #00ff00; font-family: 'Courier New', monospace; font-size: 13px;">
                                 </div>
+                                <div style="width: 80px;">
+                                    <label style="display: block; margin-bottom: 5px; color: #00ff00; font-size: 0.9rem;">${isFarsi ? 'رشته‌ها' : '线程'}</label>
+                                    <input type="number" id="testThreads" value="5" min="1" max="50" style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.8); border: 1px solid #00ff00; color: #00ff00; font-family: 'Courier New', monospace; font-size: 13px;">
+                                </div>
                             </div>
                             <div id="manualInputDiv" style="margin-bottom: 10px;">
                                 <label style="display: block; margin-bottom: 5px; color: #00ff00; font-size: 0.9rem;">${t.latencyTestIP}</label>
@@ -3724,6 +3728,14 @@
                         localStorage.setItem('randomIPCount', this.value);
                     });
                 }
+                const testThreadsInput = document.getElementById('testThreads');
+                if (testThreadsInput) {
+                    const savedThreads = localStorage.getItem('testThreads');
+                    if (savedThreads) testThreadsInput.value = savedThreads;
+                    testThreadsInput.addEventListener('input', function() {
+                        localStorage.setItem('testThreads', this.value);
+                    });
+                }
                 if (ipSourceSelect) {
                     const savedSource = localStorage.getItem('ipSourceSelect');
                     if (savedSource) {
@@ -3824,11 +3836,13 @@
                     startTestBtn.addEventListener('click', async function() {
                         const inputField = document.getElementById('latencyTestInput');
                         const portField = document.getElementById('latencyTestPort');
+                        const threadsField = document.getElementById('testThreads');
                         const inputValue = inputField.value.trim();
                         const defaultPort = portField.value || '443';
+                        const threads = parseInt(threadsField.value) || 5;
                         
                         if (!inputValue) {
-                            alert('${isFarsi ? 'لطفا IP یا دامنه وارد کنید' : '请输入IP或域名'}');
+                            showStatus('${isFarsi ? 'لطفا IP یا دامنه وارد کنید' : '请输入IP或域名'}', 'error');
                             return;
                         }
                         
@@ -3847,11 +3861,7 @@
                         let completed = 0;
                         const total = targets.length;
                         
-                        for (const target of targets) {
-                            if (testAbortController.signal.aborted) break;
-                            
-                            testStatus.textContent = '${isFarsi ? 'در حال تست' : '测试中'}: ' + (completed + 1) + '/' + total + ' - ' + target;
-                            
+                        function parseTarget(target) {
                             let host = target;
                             let port = defaultPort;
                             let nodeName = '';
@@ -3874,17 +3884,10 @@
                                 host = parts[0] + ']';
                                 port = parts[1];
                             }
-                            
-                            const result = await testLatency(host, port, testAbortController.signal);
-                            result.host = host;
-                            result.port = port;
-                            if (result.success && result.colo) {
-                                result.nodeName = nodeName || ('CF-' + result.colo);
-                            } else {
-                                result.nodeName = nodeName || host;
-                            }
-                            testResults.push(result);
-                            
+                            return { host, port, nodeName };
+                        }
+                        
+                        function renderResult(result, index) {
                             const resultItem = document.createElement('div');
                             resultItem.style.cssText = 'display: flex; align-items: center; padding: 8px; border-bottom: 1px solid #003300; gap: 10px;';
                             
@@ -3892,7 +3895,7 @@
                             checkbox.type = 'checkbox';
                             checkbox.checked = result.success;
                             checkbox.disabled = !result.success;
-                            checkbox.dataset.index = testResults.length - 1;
+                            checkbox.dataset.index = index;
                             checkbox.style.cssText = 'width: 18px; height: 18px; cursor: pointer;';
                             
                             const info = document.createElement('div');
@@ -3901,18 +3904,44 @@
                             if (result.success) {
                                 const coloName = result.colo ? getColoName(result.colo) : '';
                                 const coloDisplay = coloName ? ' <span style="color: #00aaff;">[' + coloName + ']</span>' : '';
-                                info.innerHTML = '<span style="color: #00ff00;">' + host + ':' + port + '</span>' + coloDisplay + ' <span style="color: #ffff00;">' + result.latency + 'ms</span>';
+                                info.innerHTML = '<span style="color: #00ff00;">' + result.host + ':' + result.port + '</span>' + coloDisplay + ' <span style="color: #ffff00;">' + result.latency + 'ms</span>';
                             } else {
                                 const errorDetail = result.error || '${isFarsi ? 'زمان تمام شد' : '超时'}';
                                 const testUrlDisplay = result.testUrl ? '<br><span style="color: #888; font-size: 11px;">URL: ' + result.testUrl + '</span>' : '';
-                                info.innerHTML = '<span style="color: #ff4444;">' + host + ':' + port + '</span> <span style="color: #ff6666; font-size: 12px;">' + errorDetail + '</span>' + testUrlDisplay;
+                                info.innerHTML = '<span style="color: #ff4444;">' + result.host + ':' + result.port + '</span> <span style="color: #ff6666; font-size: 12px;">' + errorDetail + '</span>' + testUrlDisplay;
                             }
                             
                             resultItem.appendChild(checkbox);
                             resultItem.appendChild(info);
                             resultsList.appendChild(resultItem);
+                        }
+                        
+                        async function testOne(target) {
+                            if (testAbortController.signal.aborted) return null;
+                            const { host, port, nodeName } = parseTarget(target);
+                            const result = await testLatency(host, port, testAbortController.signal);
+                            result.host = host;
+                            result.port = port;
+                            result.nodeName = (result.success && result.colo) ? (nodeName || ('CF-' + result.colo)) : (nodeName || host);
+                            return result;
+                        }
+                        
+                        for (let i = 0; i < total; i += threads) {
+                            if (testAbortController.signal.aborted) break;
                             
-                            completed++;
+                            const batch = targets.slice(i, Math.min(i + threads, total));
+                            testStatus.textContent = '${isFarsi ? 'در حال تست' : '测试中'}: ' + (i + 1) + '-' + Math.min(i + threads, total) + '/' + total + ' (${isFarsi ? 'رشته‌ها' : '线程'}: ' + threads + ')';
+                            
+                            const results = await Promise.all(batch.map(t => testOne(t)));
+                            
+                            for (const result of results) {
+                                if (result) {
+                                    const idx = testResults.length;
+                                    testResults.push(result);
+                                    renderResult(result, idx);
+                                    completed++;
+                                }
+                            }
                         }
                         
                         testStatus.textContent = '${isFarsi ? 'تست کامل شد' : '测试完成'}: ' + completed + '/' + total;
