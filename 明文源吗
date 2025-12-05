@@ -4017,18 +4017,6 @@
                     });
                 }
                 
-                function ipToHex(ip) {
-                    const parts = ip.split('.');
-                    if (parts.length !== 4) return null;
-                    let hex = '';
-                    for (let i = 0; i < 4; i++) {
-                        const num = parseInt(parts[i]);
-                        if (isNaN(num) || num < 0 || num > 255) return null;
-                        hex += num.toString(16).padStart(2, '0');
-                    }
-                    return hex;
-                }
-                
                 const coloMap = {
                     'SJC': '圣何塞', 'LAX': '洛杉矶', 'SEA': '西雅图', 'SFO': '旧金山', 'DFW': '达拉斯',
                     'ORD': '芝加哥', 'IAD': '华盛顿', 'ATL': '亚特兰大', 'MIA': '迈阿密', 'DEN': '丹佛',
@@ -4104,11 +4092,11 @@
                         }
                         
                         const cleanHost = host.replace(/^\\[|\\]$/g, '');
-                        const hexIP = ipToHex(cleanHost);
-                        const testDomain = hexIP ? (hexIP + '.nip.lfree.org') : (cleanHost + '.nip.lfree.org');
-                        testUrl = 'https://' + testDomain + ':' + port + '/';
+                        const isIPv6 = cleanHost.includes(':');
+                        const testDomain = isIPv6 ? (cleanHost.replace(/:/g, '-') + '.sslip.io') : (cleanHost + '.sslip.io');
+                        testUrl = 'https://' + testDomain + ':' + port + '/cdn-cgi/trace';
                         
-                        console.log('[LatencyTest] Testing:', testUrl, 'Original:', host + ':' + port, 'HexIP:', hexIP);
+                        console.log('[LatencyTest] Testing:', testUrl, 'Original:', host + ':' + port);
                         
                         const firstStart = Date.now();
                         const response1 = await fetch(testUrl, { 
@@ -4124,9 +4112,9 @@
                         try {
                             const text = await response1.text();
                             console.log('[LatencyTest] Response body:', text.substring(0, 200));
-                            const data = JSON.parse(text);
-                            if (data.colo) {
-                                colo = data.colo;
+                            const coloMatch = text.match(/colo=([A-Z]+)/);
+                            if (coloMatch) {
+                                colo = coloMatch[1];
                             }
                         } catch (e) {
                             console.log('[LatencyTest] Parse error:', e.message);
