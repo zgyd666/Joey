@@ -9,7 +9,6 @@
     let enableSocksDowngrade = false;
     let disableNonTLS = false;
     let disablePreferred = false;
-
     let enableRegionMatching = true;
     let currentWorkerRegion = '';
     let manualWorkerRegion = '';
