@@ -24,8 +24,8 @@
     let enableECH = false;  
     // 自定义DNS服务器（默认：https://223.5.5.5/dns-query）
     let customDNS = 'https://223.5.5.5/dns-query';
-    // 自定义ECH域名（默认：speedtest.net）
-    let customECHDomain = 'speedtest.net';
+    // 自定义ECH域名（默认：speed.cloudflare.com）
+    let customECHDomain = 'speed.cloudflare.com';
 
     let scu = 'https://url.v1.mk/sub';  
     // 远程配置URL（硬编码）
@@ -1276,7 +1276,7 @@
                 }
                 
                 if (ech) {
-                    const echDomain = customECHDomain || 'speedtest.net';
+                    const echDomain = customECHDomain || 'speed.cloudflare.com';
                     node['ech-opts'] = {
                         enable: true,
                         'query-server-name': echDomain
@@ -1324,7 +1324,7 @@
                 }
                 
                 if (ech) {
-                    const echDomain = customECHDomain || 'speedtest.net';
+                    const echDomain = customECHDomain || 'speed.cloudflare.com';
                     node['ech-opts'] = {
                         enable: true,
                         'query-server-name': echDomain
@@ -1375,7 +1375,7 @@
                             if (beforeBrace.length > 0) {
                                 // 在最后一个 } 之前添加 , ech-opts: {enable: true, query-server-name: ...}
                                 // 确保在逗号前有空格
-                                const echDomain = customECHDomain || 'speedtest.net';
+                                const echDomain = customECHDomain || 'speed.cloudflare.com';
                                 const needsComma = !beforeBrace.endsWith(',') && !beforeBrace.endsWith('{');
                                 return line.substring(0, lastBraceIndex) + (needsComma ? ', ' : ' ') + `ech-opts: {enable: true, query-server-name: ${echDomain}}` + line.substring(lastBraceIndex);
                             }
@@ -1563,7 +1563,7 @@
         let echConfig = null;
         if (enableECH) {
             const dnsServer = customDNS || 'https://223.5.5.5/dns-query';
-            const echDomain = customECHDomain || 'speedtest.net';
+            const echDomain = customECHDomain || 'speed.cloudflare.com';
             echConfig = `${echDomain}+${dnsServer}`;
         }
 
@@ -1797,7 +1797,7 @@
                     // 如果启用了ECH，添加ech参数（ECH需要伪装成Chrome浏览器）
                     if (enableECH) {
                         const dnsServer = customDNS || 'https://223.5.5.5/dns-query';
-                        const echDomain = customECHDomain || 'speedtest.net';
+                        const echDomain = customECHDomain || 'speed.cloudflare.com';
                         wsParams.set('alpn', 'h3,h2,http/1.1');
                         wsParams.set('ech', `${echDomain}+${dnsServer}`);
                     }
@@ -1878,7 +1878,7 @@
                     // 如果启用了ECH，添加ech参数（ECH需要伪装成Chrome浏览器）
                     if (enableECH) {
                         const dnsServer = customDNS || 'https://223.5.5.5/dns-query';
-                        const echDomain = customECHDomain || 'speedtest.net';
+                        const echDomain = customECHDomain || 'speed.cloudflare.com';
                         wsParams.set('alpn', 'h3,h2,http/1.1');
                         wsParams.set('ech', `${echDomain}+${dnsServer}`);
                     }
@@ -5643,7 +5643,7 @@
                 // 如果启用了ECH，添加ech参数（ECH需要伪装成Chrome浏览器）
                 if (enableECH) {
                     const dnsServer = customDNS || 'https://223.5.5.5/dns-query';
-                    const echDomain = customECHDomain || 'speedtest.net';
+                    const echDomain = customECHDomain || 'speed.cloudflare.com';
                     link += `&alpn=h3%2Ch2%2Chttp%2F1.1&ech=${encodeURIComponent(`${echDomain}+${dnsServer}`)}`;
                 }
                 
@@ -5664,7 +5664,7 @@
                 // 如果启用了ECH，添加ech参数（ECH需要伪装成Chrome浏览器）
                 if (enableECH) {
                     const dnsServer = customDNS || 'https://223.5.5.5/dns-query';
-                    const echDomain = customECHDomain || 'speedtest.net';
+                    const echDomain = customECHDomain || 'speed.cloudflare.com';
                     link += `&alpn=h3%2Ch2%2Chttp%2F1.1&ech=${encodeURIComponent(`${echDomain}+${dnsServer}`)}`;
                 }
                 
@@ -5702,7 +5702,7 @@
             // 如果启用了ECH，添加ech参数（ECH需要伪装成Chrome浏览器）
             if (enableECH) {
                 const dnsServer = customDNS || 'https://223.5.5.5/dns-query';
-                const echDomain = customECHDomain || 'speedtest.net';
+                const echDomain = customECHDomain || 'speed.cloudflare.com';
                 params.set('alpn', 'h3,h2,http/1.1');
                 params.set('ech', `${echDomain}+${dnsServer}`);
             }
@@ -5735,7 +5735,7 @@
                 // 如果启用了ECH，添加ech参数（ECH需要伪装成Chrome浏览器）
                 if (enableECH) {
                     const dnsServer = customDNS || 'https://223.5.5.5/dns-query';
-                    const echDomain = customECHDomain || 'speedtest.net';
+                    const echDomain = customECHDomain || 'speed.cloudflare.com';
                     link += `&alpn=h3%2Ch2%2Chttp%2F1.1&ech=${encodeURIComponent(`${echDomain}+${dnsServer}`)}`;
                 }
                 
@@ -5756,7 +5756,7 @@
                 // 如果启用了ECH，添加ech参数（ECH需要伪装成Chrome浏览器）
                 if (enableECH) {
                     const dnsServer = customDNS || 'https://223.5.5.5/dns-query';
-                    const echDomain = customECHDomain || 'speedtest.net';
+                    const echDomain = customECHDomain || 'speed.cloudflare.com';
                     link += `&alpn=h3%2Ch2%2Chttp%2F1.1&ech=${encodeURIComponent(`${echDomain}+${dnsServer}`)}`;
                 }
                 
@@ -6131,7 +6131,7 @@
         if (customECHDomainValue && customECHDomainValue.trim()) {
             customECHDomain = customECHDomainValue.trim();
         } else {
-            customECHDomain = 'speedtest.net';
+            customECHDomain = 'speed.cloudflare.com';
         }
         
         // 如果启用了ECH，自动启用仅TLS模式（避免80端口干扰）
